@@ -148,6 +148,7 @@ def main():
     price_rows = []
     seen = set()
     used_images = set()
+    skipped = []
     for o in offers:
         oid = o.get("id")
         if not oid or oid in seen:
@@ -175,7 +176,15 @@ def main():
         cat_id = txt(o.find("categoryId"))
         title = clean_title(txt(o.find("name")), vendor_code)
         desc = clean_description(txt(o.find("description_ua")) or txt(o.find("description")))
-        src_pics = [txt(x) for x in o.findall("picture") if txt(x)][:CFG.get("pictures_per_product", 3)]
+        src_pics = [txt(x) for x in o.findall("picture") if txt(x)]
+        checked = CFG.get("photos", {}).get(oid)
+        if checked is not None:
+            # only photos reviewed as white background, matched by file name (order on the site may change)
+            src_pics = [u for u in src_pics if u.rsplit("/", 1)[-1] in checked]
+        if not src_pics or (checked is None and CFG.get("skip_products_without_checked_photos")):
+            skipped.append(oid)
+            continue
+        src_pics = src_pics[:CFG.get("pictures_per_product", 3)]
         pics = []
         for u in src_pics:
             name = mirror_picture(u) if CFG.get("mirror_images", True) else None
@@ -254,6 +263,7 @@ def main():
     with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as f:
         f.write('<!doctype html><meta charset="utf-8"><title>WAYBOX monomarket feeds</title>'
                 '<p><a href="products.xml">products.xml</a> | <a href="offers.json">offers.json</a> | updated %s</p>' % now)
+    print("skipped (no checked white photo): %s" % ", ".join(skipped))
     print("ok: %d offers, %d images (%d new, %d failed), updatedAt %s"
           % (len(price_rows), len(used_images), _downloads["new"], _downloads["failed"], now))
 
