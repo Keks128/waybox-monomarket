@@ -8,7 +8,10 @@ If the source looks broken, the script exits with an error and the previously
 published files stay as they are.
 """
 import datetime as dt
+import hashlib
 import html
+import shutil
+import time
 import json
 import os
 import re
@@ -93,6 +96,40 @@ def param_values(p):
     return [v for v in vals if v]
 
 
+CACHE = os.path.join(HERE, "img_cache")
+IMG_EXT = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif"}
+_downloads = {"new": 0, "failed": 0}
+
+
+def mirror_picture(url):
+    """Copy a site photo to our own hosting once (cached by URL), return the public URL or None.
+    Already cached photos are never downloaded again, so the site gets almost no extra load."""
+    key = hashlib.sha1(url.encode("utf-8")).hexdigest()[:20]
+    for ext in IMG_EXT.values():
+        if os.path.exists(os.path.join(CACHE, key + "." + ext)):
+            return key + "." + ext
+    if _downloads["new"] >= CFG.get("max_new_images_per_run", 400):
+        return None
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "waybox-monomarket-feed/1.0"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            ctype = (r.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+            data = r.read()
+    except Exception:
+        _downloads["failed"] += 1
+        return None
+    ext = IMG_EXT.get(ctype)
+    if not ext or len(data) < 1024:
+        _downloads["failed"] += 1
+        return None
+    os.makedirs(CACHE, exist_ok=True)
+    with open(os.path.join(CACHE, key + "." + ext), "wb") as f:
+        f.write(data)
+    _downloads["new"] += 1
+    time.sleep(CFG.get("download_pause_sec", 0.3))
+    return key + "." + ext
+
+
 def pkg(cat_id):
     d = CFG["package_by_category"].get(str(cat_id)) or CFG["package_default"]
     return d
@@ -110,6 +147,7 @@ def main():
     xml_parts = ['<?xml version="1.0" encoding="UTF-8"?>', "<Market>", "<offers>"]
     price_rows = []
     seen = set()
+    used_images = set()
     for o in offers:
         oid = o.get("id")
         if not oid or oid in seen:
@@ -137,7 +175,15 @@ def main():
         cat_id = txt(o.find("categoryId"))
         title = clean_title(txt(o.find("name")), vendor_code)
         desc = clean_description(txt(o.find("description_ua")) or txt(o.find("description")))
-        pics = [txt(x) for x in o.findall("picture") if txt(x)][:10]
+        src_pics = [txt(x) for x in o.findall("picture") if txt(x)][:CFG.get("pictures_per_product", 3)]
+        pics = []
+        for u in src_pics:
+            name = mirror_picture(u) if CFG.get("mirror_images", True) else None
+            if name:
+                used_images.add(name)
+                pics.append(CFG["images_base_url"].rstrip("/") + "/img/" + name)
+            else:
+                pics.append(u)
         warranty = None
         for k in ("Гарантія, міс", "Гарантія"):
             if params.get(k):
@@ -195,10 +241,21 @@ def main():
         f.write(xml_text)
     with open(os.path.join(OUT, "offers.json"), "w", encoding="utf-8") as f:
         json.dump({"updatedAt": now, "total": len(price_rows), "data": price_rows}, f, ensure_ascii=False, indent=1)
+    img_out = os.path.join(OUT, "img")
+    os.makedirs(img_out, exist_ok=True)
+    for name in sorted(used_images):
+        shutil.copyfile(os.path.join(CACHE, name), os.path.join(img_out, name))
+    if os.path.isdir(CACHE):
+        for name in os.listdir(CACHE):          # drop photos no longer used in the feed
+            if name not in used_images and name != "manifest.txt":
+                os.remove(os.path.join(CACHE, name))
+        with open(os.path.join(CACHE, "manifest.txt"), "w") as f:
+            f.write("\n".join(sorted(used_images)))
     with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as f:
         f.write('<!doctype html><meta charset="utf-8"><title>WAYBOX monomarket feeds</title>'
                 '<p><a href="products.xml">products.xml</a> | <a href="offers.json">offers.json</a> | updated %s</p>' % now)
-    print("ok: %d offers, updatedAt %s" % (len(price_rows), now))
+    print("ok: %d offers, %d images (%d new, %d failed), updatedAt %s"
+          % (len(price_rows), len(used_images), _downloads["new"], _downloads["failed"], now))
 
 
 if __name__ == "__main__":
