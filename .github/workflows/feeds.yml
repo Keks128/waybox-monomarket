@@ -9,6 +9,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: feeds
@@ -17,21 +19,42 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
+    environment:
+      name: github-pages
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Restore photo cache (photos are downloaded from the site only once)
+        uses: actions/cache/restore@v4
+        with:
+          path: img_cache
+          key: img-${{ github.run_id }}
+          restore-keys: img-
       - name: Generate feeds
         run: python generate.py
-      - name: Publish to gh-pages (single commit, no history growth)
+      - name: Save photo cache
+        uses: actions/cache/save@v4
+        with:
+          path: img_cache
+          key: img-${{ hashFiles('img_cache/manifest.txt') }}
+        continue-on-error: true
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - uses: actions/deploy-pages@v4
+      - name: Keep the schedule alive (GitHub pauses schedules after 60 days without commits)
         run: |
-          cd public
-          touch .nojekyll
-          git init -q -b gh-pages
-          git config user.name "feeds-bot"
-          git config user.email "feeds-bot@users.noreply.github.com"
-          git add -A
-          git commit -q -m "feeds $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
+          last=$(git log -1 --format=%ct)
+          now=$(date +%s)
+          if [ $((now - last)) -gt 2592000 ]; then
+            date -u +%Y-%m-%dT%H:%M:%SZ > keepalive.txt
+            git config user.name "feeds-bot"
+            git config user.email "feeds-bot@users.noreply.github.com"
+            git add keepalive.txt
+            git commit -q -m "keepalive [skip ci]"
+            git push -q
+          fi
