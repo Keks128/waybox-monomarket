@@ -130,9 +130,16 @@ def mirror_picture(url):
     return key + "." + ext
 
 
-def pkg(cat_id):
-    d = CFG["package_by_category"].get(str(cat_id)) or CFG["package_default"]
-    return d
+def pkg(cat_id, title="", brand=""):
+    """Real package sizes from the client (package_rules, first match by title/brand wins),
+    otherwise the old estimate by category."""
+    for r in CFG.get("package_rules", []):
+        if r.get("brand") and r["brand"].lower() != (brand or "").lower():
+            continue
+        if re.search(r["match"], title or "", re.I):
+            base = CFG["package_by_category"].get(str(cat_id)) or CFG["package_default"]
+            return {**base, **r["pkg"]}
+    return CFG["package_by_category"].get(str(cat_id)) or CFG["package_default"]
 
 
 def main():
@@ -202,7 +209,7 @@ def main():
                     break
         if warranty is None:
             warranty = CFG["warranty_period_default"]
-        pk = pkg(cat_id)
+        pk = pkg(cat_id, title, brand)
         available = stock > 0
 
         x = ["<offer>",

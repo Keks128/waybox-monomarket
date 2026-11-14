@@ -467,5 +467,102 @@
    "465.1200x1200.jpg"
   ]
  },
- "skip_products_without_checked_photos": true
+ "skip_products_without_checked_photos": true,
+ "package_rules_note": "Real package sizes from client 2026-11-14 (cm, kg). First match wins. Adapters: weight not given, category estimate kept.",
+ "package_rules": [
+  {
+   "name": "Pisces stations",
+   "brand": "Feyree",
+   "match": "Pisces",
+   "pkg": {
+    "length": 41,
+    "width": 33,
+    "height": 14,
+    "weight": 4
+   }
+  },
+  {
+   "name": "Lion Ultra",
+   "brand": "Feyree",
+   "match": "Ultra",
+   "pkg": {
+    "length": 39,
+    "width": 39,
+    "height": 11,
+    "weight": 3.8
+   }
+  },
+  {
+   "name": "Hero H8",
+   "brand": "Feyree",
+   "match": "Hero|H8",
+   "pkg": {
+    "length": 39,
+    "width": 39,
+    "height": 11,
+    "weight": 3.8
+   }
+  },
+  {
+   "name": "Lion K7/K8/K9",
+   "brand": "Feyree",
+   "match": "Lion",
+   "pkg": {
+    "length": 39,
+    "width": 39,
+    "height": 8,
+    "weight": 3.3
+   }
+  },
+  {
+   "name": "Cat F8/F9",
+   "brand": "Feyree",
+   "match": "Cat",
+   "pkg": {
+    "length": 27,
+    "width": 27,
+    "height": 9,
+    "weight": 2.2
+   }
+  },
+  {
+   "name": "Dischargers V2L",
+   "match": "Розрядн|Разрядн|V2L",
+   "pkg": {
+    "length": 15,
+    "width": 9,
+    "height": 8,
+    "weight": 0.4
+   }
+  },
+  {
+   "name": "CEE-Schuko adapters",
+   "match": "CEE.*Schuko|Schuko.*CEE|CCE",
+   "pkg": {
+    "length": 24,
+    "width": 11,
+    "height": 8,
+    "weight": 0.4
+   }
+  },
+  {
+   "name": "Connectors (guns)",
+   "match": "Конектор|Коннектор|пістолет",
+   "pkg": {
+    "length": 24,
+    "width": 11,
+    "height": 8,
+    "weight": 0.4
+   }
+  },
+  {
+   "name": "Adapters",
+   "match": "^\\s*(Перехідник|Переходник|Адаптер)",
+   "pkg": {
+    "length": 15,
+    "width": 8,
+    "height": 8
+   }
+  }
+ ]
 }
