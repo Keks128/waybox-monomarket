@@ -468,7 +468,7 @@
   ]
  },
  "skip_products_without_checked_photos": true,
- "package_rules_note": "Real package sizes from client 2026-11-14 (cm, kg). First match wins. Adapters: weight not given, category estimate kept.",
+ "package_rules_note": "Client sizes 2026-11-14 (cm, kg); WAYBOX chargers=Lion, DC adapters=connectors, station cable=Cat box, adapter weight=0.4 (by analogy).",
  "package_rules": [
   {
    "name": "Pisces stations",
@@ -556,12 +556,44 @@
    }
   },
   {
+   "name": "DC fast adapters (as connectors)",
+   "match": "Швидкісний адаптер|CCS2",
+   "pkg": {
+    "length": 24,
+    "width": 11,
+    "height": 8,
+    "weight": 0.4
+   }
+  },
+  {
    "name": "Adapters",
    "match": "^\\s*(Перехідник|Переходник|Адаптер)",
    "pkg": {
     "length": 15,
     "width": 8,
-    "height": 8
+    "height": 8,
+    "weight": 0.4
+   }
+  },
+  {
+   "name": "WAYBOX portable chargers (as Lion)",
+   "brand": "Waybox",
+   "match": "^\\s*Зарядка",
+   "pkg": {
+    "length": 39,
+    "width": 39,
+    "height": 8,
+    "weight": 3.3
+   }
+  },
+  {
+   "name": "Station cable (as Cat box)",
+   "match": "^\\s*Кабель",
+   "pkg": {
+    "length": 27,
+    "width": 27,
+    "height": 9,
+    "weight": 2.2
    }
   }
  ]
