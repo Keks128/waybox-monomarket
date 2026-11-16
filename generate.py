@@ -240,7 +240,9 @@ def main():
         xml_parts.append("\n".join(x))
 
         row = {"code": oid, "price": price, "old_price": old_price, "availability": available,
-               "stock": stock, "warehouses": None,
+               "stock": stock,
+               # stock by location: same site stock, sent to the location created in the Monomarket cabinet
+               "warehouses": [{"id": CFG["warehouse_id"], "stock": stock}] if CFG.get("warehouse_id") else None,
                "warranty_type": CFG["warranty_type"], "warranty_period": warranty,
                "days_to_dispatch": CFG["days_to_dispatch"], "manufacture": None}
         if CFG.get("max_pay_in_parts"):
