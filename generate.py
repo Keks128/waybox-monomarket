@@ -185,7 +185,10 @@ def main():
         desc = clean_description(txt(o.find("description_ua")) or txt(o.find("description")))
         src_pics = [txt(x) for x in o.findall("picture") if txt(x)]
         checked = CFG.get("photos", {}).get(oid)
-        if checked is not None:
+        if isinstance(checked, int):
+            # first N site photos were reviewed as white background
+            src_pics = src_pics[:checked]
+        elif checked is not None:
             # only photos reviewed as white background, matched by file name (order on the site may change)
             src_pics = [u for u in src_pics if u.rsplit("/", 1)[-1] in checked]
         if not src_pics or (checked is None and CFG.get("skip_products_without_checked_photos")):

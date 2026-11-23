@@ -474,8 +474,21 @@
   ],
   "463": [
    "463.1200x1200.jpg"
-  ]
+  ],
+  "194": ["feyree-194-white.1200x1200.jpg"],
+  "205": ["feyree-205-white.1200x1200.jpg"],
+  "230": ["feyree-230-white.1200x1200.jpg"],
+  "236": ["feyree-236-white.1200x1200.jpg"],
+  "287": ["feyree-287-white.1200x1200.jpg"],
+  "373": ["feyree-373-white.1200x1200.jpg"],
+  "374": ["feyree-374-white.1200x1200.jpg"],
+  "495": ["feyree-495-white.1200x1200.jpg"],
+  "497": ["feyree-497-white.1200x1200.jpg"],
+  "446": 1,
+  "498": 1,
+  "499": 1
  },
+ "photos_note": "A number instead of a file list = take that many first photos from the site (used where the first site photo is a checked white packshot).",
  "skip_products_without_checked_photos": true,
  "package_rules_note": "Client sizes 2026-11-14 (cm, kg); WAYBOX chargers=Lion, DC adapters=connectors, station cable=Cat box, adapter weight=0.4 (by analogy).",
  "package_rules": [
